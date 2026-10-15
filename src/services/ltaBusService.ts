@@ -22,7 +22,7 @@ export interface ApiConfig {
 
 export const defaultApiConfig: ApiConfig = {
   mode: 'simulation',
-  backendUrl: '',
+  backendUrl: '/api/busarrival',
   ltaApiKey: '',
 };
 
@@ -143,7 +143,10 @@ export class LtaBusService {
   public async getBusArrivals(busStopCode: string): Promise<BusArrivalService[]> {
     if (this.apiConfig.mode === 'backend' && this.apiConfig.backendUrl) {
       try {
-        const url = new URL(this.apiConfig.backendUrl);
+        const url = new URL(
+          this.apiConfig.backendUrl,
+          typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+        );
         url.searchParams.set('BusStopCode', busStopCode);
         const headers: Record<string, string> = {
           'Accept': 'application/json',

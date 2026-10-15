@@ -48,18 +48,23 @@ export const BackendSettingsModal: React.FC<BackendSettingsModalProps> = ({
 
     setTestStatus('testing');
     try {
-      const url = new URL(backendUrl);
-      url.searchParams.set('BusStopCode', '09048');
+      const url = new URL(backendUrl, window.location.origin);
+      url.searchParams.set('BusStopCode', '83139');
       const headers: Record<string, string> = { Accept: 'application/json' };
       if (ltaApiKey) headers['AccountKey'] = ltaApiKey;
 
       const resp = await fetch(url.toString(), { headers });
+      const data = await resp.json().catch(() => null);
+
       if (resp.ok) {
         setTestStatus('success');
-        setTestMessage(`Connected successfully! Server returned HTTP ${resp.status}`);
+        setTestMessage(`Connected to LTA DataMall! Returned ${data?.Services?.length || 0} active bus services.`);
+      } else if (resp.status === 401 && data?.error?.includes('AccountKey')) {
+        setTestStatus('failed');
+        setTestMessage(`Serverless endpoint reachable! Waiting for LTA_ACCOUNT_KEY in .env or header.`);
       } else {
         setTestStatus('failed');
-        setTestMessage(`Server returned HTTP ${resp.status}: ${resp.statusText}`);
+        setTestMessage(`Server returned HTTP ${resp.status}: ${data?.message || resp.statusText}`);
       }
     } catch (err: any) {
       setTestStatus('failed');
